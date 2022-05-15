@@ -15,7 +15,9 @@ customer_img_path = 'resources/customer2.png'
 addict_img_path = 'resources/addictor.png'
 output_path = 'out'
 face_thin_alpha = 1 # 数值越大瘦脸程度越大
-exposure_alpha = 1.1  # 防曝光，如果出现异常蓝点调大此数值
+cut_image = True
+exposure_alpha = 1  # 防曝光，如果出现异常蓝点调大此数值，大于1的值可能导致出现色差
+# TODO：用一种更柔和的方式除曝光
 
 
 def detect_face_and_cut(img: np.ndarray) -> np.ndarray:
@@ -411,7 +413,7 @@ def merge_img(bottom_img: np.ndarray,
                        (255, 255, 255))  # 填充多边形，实现蒙版
     r = cv2.boundingRect(landmarks_bottom)  # 计算脸部边界框
     center = (r[0] + int(r[2] / 2), r[1] + int(r[3] / 2))  # 计算脸部中心
-    
+
     # 对蒙版均值滤波平滑，使结果更加柔和
     face_mask = cv2.blur(face_mask, (15, 10), center)
 
@@ -527,10 +529,11 @@ if __name__ == "__main__":
     assert addict_img is not None, 'empty image'
 
     now = time.time()
-    img = detect_face_and_cut(customer_img)
+    if cut_image:
+        customer_img = detect_face_and_cut(customer_img)
 
     # 调用瘦脸算法
-    customer_thin_image = face_thin(img, alpha=face_thin_alpha)
+    customer_thin_image = face_thin(customer_img, alpha=face_thin_alpha)
     customer_thin_image_2 = face_thin(customer_thin_image,
                                       alpha=face_thin_alpha)
 
@@ -551,13 +554,13 @@ if __name__ == "__main__":
                                addict_img,
                                alpha=0.8,
                                exposure_alpha=exposure_alpha)
+
     print(f'time usage:{time.time()-now}')
 
     # 保存输出图像
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     cv2.imwrite(f"{output_path}/customer.png", customer_img)
-    cv2.imwrite(f"{output_path}/cut_img.png", img)
     cv2.imwrite(f"{output_path}/addict.png", addict_img)
     cv2.imwrite(f"{output_path}/merge.png", merge_image)
     cv2.imwrite(f"{output_path}/merge2.png", merge_image_2)
