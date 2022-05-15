@@ -16,7 +16,6 @@ Input:
 
 Output:
 
-![image](resources/cut_img.png)
 ![image](resources/merge.png)
 ![image](resources/merge2.png)
 ![image](resources/merge3.png)
